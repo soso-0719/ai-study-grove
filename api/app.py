@@ -10,9 +10,9 @@ study_logs = {
         "id":1,
         "title":"Flask API",
         "memo":"Flask app",
-        "minute":50,
-        "difiiculty":3,
-        "create_at":"2026-06-06"
+        "minutes":50,
+        "difficulty":3,
+        "created_at":"2026-06-06"
             }
 @app.route("/health")
 def health():
@@ -30,7 +30,7 @@ def get_study_logs():
 @app.route("/study-logs")
 def get_study_logs():
     global next_id 
-    data = request.get_json(silent=True)
+    data = request.get_json(silent=True)##読み取りミスってもNoneにしてエラー防ぐ
     if data is None :
         return jsonify({
             "error":"Json body is required from HTTP request"

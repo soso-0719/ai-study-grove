@@ -1,5 +1,5 @@
 from flask import Flask , jsonify, request
-from db import init_db , create_log , get_logs
+from db import init_db , create_log , get_logs, get_detail_by_id as get_detail
 from datetime import datetime
 from flask_cors import CORS
 
@@ -28,6 +28,15 @@ def get_study_logs():
     return jsonify({
         "logs":logs
     })
+
+@app.route("/study-logs/<int:log_id>")
+def get_detail_by_id(log_id):
+    detail_log = get_detail(log_id)
+    if detail_log is None:
+        return jsonify({
+            "error":"log not found"
+        }),404
+    return jsonify(detail_log)
 
 @app.route("/study-logs",methods = ["POST"])
 def create_study_log():

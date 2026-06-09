@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
-
+import Link from "next/link";
 
 type StudyLog = {
   id: number;
@@ -50,6 +50,7 @@ export default function Home() {
   useEffect(() => {
     fetchLogs();
   }, []);
+
   //POST処理
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -164,11 +165,9 @@ export default function Home() {
 
         {logs.map((log) => (
           <article key={log.id}>
-            <h3>{log.title}</h3>
-            <p>{log.memo}</p>
-            <p>Minutes: {log.minutes}</p>
-            <p>Difficulty: {log.difficulty}</p>
-            <p>Created At: {log.created_at}</p>
+            <Link href={`/logs/${log.id}`}>
+              {log.title}
+            </Link>
           </article>
         ))}
       </section>

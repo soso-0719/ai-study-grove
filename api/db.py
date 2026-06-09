@@ -61,3 +61,28 @@ def get_logs():
             "created_at": row["created_at"]
         })    
     return logs    
+
+def get_detail_by_id(log_id):
+    conn = get_conn()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT id, title, memo, minutes, difficulty, created_at
+        FROM study_logs
+        WHERE id = ?
+    """, (log_id,))
+
+    row = cursor.fetchone()
+    conn.close()
+
+    if row is None:
+        return None
+
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "memo": row["memo"],
+        "minutes": row["minutes"],
+        "difficulty": row["difficulty"],
+        "created_at": row["created_at"]
+    }

@@ -1,8 +1,15 @@
 from flask import Flask , jsonify, request
 from db import init_db , create_log , get_logs
 from datetime import datetime
+from flask_cors import CORS
+
 ##Flaskクラスが作成したインスタンス（アプリ本体）
 app = Flask(__name__)
+CORS(app, origins=[
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+])
+
 ##数字定義
 HOST = "127.0.0.1"
 PORT = 5000
@@ -14,13 +21,12 @@ def health():
     return jsonify({
         "status": "ok"
     })
-
+#データベースの今ある範囲は全部返す
 @app.route("/study-logs")
 def get_study_logs():
     logs = get_logs()
     return jsonify({
         "logs":logs
-
     })
 
 @app.route("/study-logs",methods = ["POST"])
@@ -32,7 +38,7 @@ def create_study_log():
         return jsonify({
         "error":error
     }),400
-##INSERTしてる。
+##INSERT
     new_id = create_log(
         validata["title"],
         validata["memo"],

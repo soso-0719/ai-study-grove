@@ -1,65 +1,177 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
+
+
+type StudyLog = {
+  id: number;
+  title: string;
+  memo: string;
+  minutes: number;
+  difficulty: number;
+  created_at: string;
+};
+
+type logsResponse = {
+  logs: StudyLog[];
+};
 
 export default function Home() {
+  const [title, setTitle] = useState("");
+  const [memo, setMemo] = useState("");
+  const [minutes, setMinutes] = useState("");
+  const [difficulty, setDifficulty] = useState("3");
+  const [logs, setLogs] = useState<StudyLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const totalMinutes = logs.reduce((total, log) => {
+    return total + log.minutes;
+  }, 0);
+  const API_BASE_URL = "http://127.0.0.1:5000";
+
+  //データ持ってくる、画面更新1回目は全部のデータ持ってくる
+  async function fetchLogs() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/study-logs`);
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch study logs");
+      }
+      //dataはlogsResponse型
+      const data: logsResponse = await response.json();
+      setLogs(data.logs);
+    } catch {
+      setError("Failed to load study logs");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchLogs();
+  }, []);
+  //POST処理
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+    const response = await fetch(`${API_BASE_URL}/study-logs`, {
+      method: "POST",
+      headers: {
+        "content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        title: title,
+        memo: memo,
+        minutes: minutes,
+        difficulty: difficulty,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      //Flaskにerrorあればそれ出力なきゃ右
+      setError(errorData.error || "Failed to save study log");
+      return;
+    }
+
+    setTitle("");
+    setMemo("");
+    setMinutes("");
+    setDifficulty("3");
+
+    await fetchLogs();
+    console.log("submit")
+  }
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <main>
+      <h1>AI Study Grove</h1>
+      <p>学習ログを記録し、AIで復習しやすくする学習支援アプリ。</p>
+
+      <section>
+        {loading && <p>Loading...</p>}
+        {error && <p>{error}</p>}
+        <h2>New Study Log</h2>
+
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Title</label>
+            <input
+              placeholder="React state and API"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </div>
+
+          <div>
+            <label>Memo</label>
+            <textarea
+              placeholder="今日学んだこと、まだ曖昧なことを書く"
+              value={memo}
+              onChange={(event) => setMemo(event.target.value)}
+            />
+          </div>
+
+          <div>
+            <label>Minutes</label>
+            <input
+              placeholder="60"
+              value={minutes}
+              onChange={(event) => setMinutes(event.target.value)}
+            />
+          </div>
+
+          <div>
+            <label>Difficulty</label>
+            <select
+              value={difficulty}
+              onChange={(event) => setDifficulty(event.target.value)}
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+
+          <button type="submit" >Save Log</button>
+        </form>
+
+        <div>
+          <h3>Input Preview</h3>
+          <p>Title: {title}</p>
+          <p>Memo: {memo}</p>
+          <p>Minutes: {minutes}</p>
+          <p>Difficulty: {difficulty}</p>
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section>
+        <h2>Summary</h2>
+        <p>Total Minutes: {totalMinutes}</p>
+        <p>Total Logs: {logs.length}</p>
+      </section>
+
+      <section>
+        <h2>AI Feedback Preview</h2>
+        <p>
+          今日の学習内容をAIが要約し、苦手ポイントと復習問題を作る予定です。
+        </p>
+      </section>
+
+      <section>
+        <h2>Recent Logs</h2>
+
+        {logs.map((log) => (
+          <article key={log.id}>
+            <h3>{log.title}</h3>
+            <p>{log.memo}</p>
+            <p>Minutes: {log.minutes}</p>
+            <p>Difficulty: {log.difficulty}</p>
+            <p>Created At: {log.created_at}</p>
+          </article>
+        ))}
+      </section>
+    </main>
   );
 }

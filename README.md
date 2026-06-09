@@ -1,4 +1,4 @@
-# AI Study Grove
+# AI Study Grove(開発中です)
 
 AI Study Grove is a study support application that combines focus timer, study logs, and AI-based review feedback.
 

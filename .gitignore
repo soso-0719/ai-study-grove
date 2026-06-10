@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# DB
+data/app.db
+
+# 環境変数
+.env
+api/.env

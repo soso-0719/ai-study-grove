@@ -20,8 +20,45 @@ def init_db():
             created_at TEXT NOT NULL
         )
         """)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS ai_feedbacks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        log_id INTEGER NOT NULL,
+        feedback TEXT NOT NULL,
+        created_at TEXT NOT NULL
+        )
+        """)
     conn.commit()
     conn.close()
+
+def create_feedback(log_id, feedback, created_at):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO ai_feedbacks (log_id, feedback, created_at)
+        VALUES (?, ?, ?)
+    """, (log_id, feedback, created_at))
+    conn.commit()
+    conn.close()
+
+def get_feedback_by_log_id(log_id):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT feedback, created_at
+        FROM ai_feedbacks
+        WHERE log_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (log_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        return None
+    return {
+        "feedback": row["feedback"],
+        "created_at": row["created_at"]
+    }
 
 def create_log(title,memo,minutes,difficulty,created_at):
     conn = get_conn()

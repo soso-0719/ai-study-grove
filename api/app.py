@@ -1,5 +1,7 @@
+import anthropic
+import os
 from flask import Flask , jsonify, request
-from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log
+from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id
 from datetime import datetime
 from flask_cors import CORS
 
@@ -9,18 +11,22 @@ CORS(app, origins=[
     "http://localhost:3000",
     "http://127.0.0.1:3000"
 ])
+claude_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
 
 ##数字定義
 HOST = "127.0.0.1"
 PORT = 5000
 DEBUG = True
 
-@app.route("/health")
-def health():
-    ## HTTPレスポンスではjsonで扱う。
-    return jsonify({
-        "status": "ok"
-    })
+# log_idに対応するフィードバックを返すエンドポイント
+@app.route("/ai-feedbacks/<int:log_id>")
+def get_feedback(log_id):
+    feedback = get_feedback_by_log_id(log_id)
+    if feedback is None:
+        return jsonify({"error": "feedback not found"}), 404
+    return jsonify(feedback), 200
+
 #データベースの今ある範囲は全部返す
 @app.route("/study-logs")
 def get_study_logs():
@@ -86,7 +92,15 @@ def create_study_log():
             "created_at": created_at
         }
 
-    
+##AIfeedback作成
+    prompt = f"以下の学習ログにコメントしてください。\nタイトル: {validata['title']}\nメモ: {validata['memo']}\n学習時間: {validata['minutes']}分\n難易度: {validata['difficulty']}/5\n\n学習内容への理解コメントと、次に学ぶべきことを2〜3文で教えてください。"
+    message = claude_client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=300,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    feedback_text = message.content[0].text
+    create_feedback(new_id, feedback_text, created_at)
 
     return jsonify(new_log), 201
 

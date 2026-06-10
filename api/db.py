@@ -7,6 +7,7 @@ def get_conn():
     conn.row_factory = sqlite3.Row
     ##これまじ大事
     return conn
+
 def init_db():
     conn = get_conn()
     cursor = conn.cursor()
@@ -21,46 +22,26 @@ def init_db():
         )
         """)
     cursor.execute("""
-    CREATE TABLE IF NOT EXISTS ai_feedbacks (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        log_id INTEGER NOT NULL,
-        feedback TEXT NOT NULL,
-        created_at TEXT NOT NULL
+        CREATE TABLE IF NOT EXISTS ai_feedbacks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            log_id INTEGER NOT NULL,
+            feedback TEXT NOT NULL,
+            created_at TEXT NOT NULL
         )
-        """)
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        )
+    """)
+
     conn.commit()
     conn.close()
 
-def create_feedback(log_id, feedback, created_at):
-    conn = get_conn()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO ai_feedbacks (log_id, feedback, created_at)
-        VALUES (?, ?, ?)
-    """, (log_id, feedback, created_at))
-    conn.commit()
-    conn.close()
-
-def get_feedback_by_log_id(log_id):
-    conn = get_conn()
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT feedback, created_at
-        FROM ai_feedbacks
-        WHERE log_id = ?
-        ORDER BY created_at DESC
-        LIMIT 1
-    """, (log_id,))
-    row = cursor.fetchone()
-    conn.close()
-    if row is None:
-        return None
-    return {
-        "feedback": row["feedback"],
-        "created_at": row["created_at"]
-    }
-
-def create_log(title,memo,minutes,difficulty,created_at):
+def create_log(title, memo, minutes, difficulty, created_at):
     conn = get_conn()
     cursor = conn.cursor()
 
@@ -73,6 +54,30 @@ def create_log(title,memo,minutes,difficulty,created_at):
     conn.close()
 
     return new_id
+
+def create_feedback(log_id, feedback, created_at):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO ai_feedbacks (log_id, feedback, created_at)
+        VALUES (?, ?, ?)
+    """, (log_id, feedback, created_at))
+    conn.commit()
+    conn.close()
+
+def create_user(username, password_hash, created_at):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO users (username, password_hash, created_at)
+        VALUES (?, ?, ?)
+    """, (username, password_hash, created_at))
+    conn.commit()
+    new_id = cursor.lastrowid
+    conn.close()
+    return new_id
+
+
 
 def get_logs():
     conn = get_conn()
@@ -88,7 +93,7 @@ def get_logs():
     conn.close()
     logs = []
 
-    for row in rows :
+    for row in rows:
         logs.append({
             "id": row["id"],
             "title": row["title"],
@@ -96,8 +101,8 @@ def get_logs():
             "minutes": row["minutes"],
             "difficulty": row["difficulty"],
             "created_at": row["created_at"]
-        })    
-    return logs    
+        })
+    return logs
 
 def delete_log(log_id):
     conn = get_conn()
@@ -108,10 +113,9 @@ def delete_log(log_id):
     conn.close()
     return deleted > 0
 
-def update_log(log_id,title,memo,minutes,difficulty):
+def update_log(log_id, title, memo, minutes, difficulty):
     conn = get_conn()
     cursor = conn.cursor()
-
     cursor.execute("""
         UPDATE study_logs
         SET title = ?, memo = ?, minutes = ?, difficulty = ?
@@ -145,4 +149,38 @@ def get_detail_by_id(log_id):
         "minutes": row["minutes"],
         "difficulty": row["difficulty"],
         "created_at": row["created_at"]
+    }
+
+
+def get_feedback_by_log_id(log_id):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT feedback, created_at
+        FROM ai_feedbacks
+        WHERE log_id = ?
+        ORDER BY created_at DESC
+        LIMIT 1
+    """, (log_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        return None
+    return {
+        "feedback": row["feedback"],
+        "created_at": row["created_at"]
+    }
+
+def get_user_by_username(username):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, password_hash FROM users WHERE username = ?", (username,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "password_hash": row["password_hash"]
     }

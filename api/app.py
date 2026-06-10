@@ -1,5 +1,5 @@
 from flask import Flask , jsonify, request
-from db import init_db , create_log , get_logs, get_detail_by_id as get_detail
+from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log
 from datetime import datetime
 from flask_cors import CORS
 
@@ -37,6 +37,28 @@ def get_detail_by_id(log_id):
             "error":"log not found"
         }),404
     return jsonify(detail_log)
+##DELETE
+@app.route("/study-logs/<int:log_id>", methods=["DELETE"])
+def delete_study_log(log_id):
+    deleted = delete_log(log_id)
+    if not deleted:
+        return jsonify({"error": "log not found"}), 404
+    return jsonify({"message": "deleted"}), 200
+
+@app.route("/study-logs/<int:log_id>", methods=["PUT"])
+def update_study_log(log_id):
+    data = request.get_json(silent=True)
+    validata,error = validate_data(data)
+
+    if error is not None :
+        return jsonify({
+            "error":error
+        }),400
+    
+    updated_data = update_log(log_id, validata["title"], validata["memo"], validata["minutes"], validata["difficulty"])
+    if not updated_data:
+        return jsonify({"error": "log not found"}), 404
+    return jsonify({"message": "updated"}), 200
 
 @app.route("/study-logs",methods = ["POST"])
 def create_study_log():

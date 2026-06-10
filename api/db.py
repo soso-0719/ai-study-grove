@@ -62,6 +62,29 @@ def get_logs():
         })    
     return logs    
 
+def delete_log(log_id):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM study_logs WHERE id = ?", (log_id,))
+    conn.commit()
+    deleted = cursor.rowcount
+    conn.close()
+    return deleted > 0
+
+def update_log(log_id,title,memo,minutes,difficulty):
+    conn = get_conn()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE study_logs
+        SET title = ?, memo = ?, minutes = ?, difficulty = ?
+        WHERE id = ?
+    """, (title, memo, minutes, difficulty, log_id))
+    conn.commit()
+    update = cursor.rowcount
+    conn.close()
+    return update > 0
+
 def get_detail_by_id(log_id):
     conn = get_conn()
     cursor = conn.cursor()

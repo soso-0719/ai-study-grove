@@ -17,7 +17,7 @@ export default function LoginPage() {
     async function handleLogin() {
         setLoading(true);
         setError("");
-        const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/login", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),
@@ -39,7 +39,7 @@ export default function LoginPage() {
     async function handleRegister() {
         setLoading(true);
         setError("");
-        const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}/register", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, password }),

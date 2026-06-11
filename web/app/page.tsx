@@ -32,7 +32,7 @@ type UserInfo = {
   next_xp: number;
 };
 
-const API_BASE_URL = "https://ai-study-grove.onrender.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export default function Home() {
   // ログフォーム

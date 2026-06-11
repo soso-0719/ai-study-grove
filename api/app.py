@@ -108,13 +108,13 @@ def create_study_log():
     create_feedback(new_id, feedback_text, created_at)
 
     return jsonify(new_log), 201
-
-@app.route("reigister",method = ["POST"])
+##新規登録
+@app.route("/reigister",methods = ["POST"])
 def register():
-    data = request.get_json(silent=Ture)
+    data = request.get_json(silent=True)
     if data is  None :
         return jsonify({
-            "error": JSON body is required
+            "error": "JSON body is required"
         }),400
     
     username = data.get("username")
@@ -128,15 +128,47 @@ def register():
     current_user = get_user_by_username(username)
     if current_user :
         return jsonify({
-            error:"username already used"
+           " error":"username already used"
         }),400
     ##hash化
-    password_hash = bcrypt.hashpw(password.encode("utf-8"), 
-        bcrypt.gensalt())
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()) 
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    create_user(username, password_hash.decode("utf-8"), created_at)
 
+    return jsonify({"message":"registered"}),201
+
+
+##ログイン
+@app.route("/login", methods =["POST"])
+def login():
+    data = request.get_json(silent=True)
+    if data is None :
+        return jsonify({
+            "error":"JSON body is required"
+        }),400
     
-                        
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({
+            "error":"username and password required"
+        }),400
+    
+    user = get_user_by_username(username)
+    if user is None : 
+        return jsonify({
+            "error":"inva;id username or password"
+        }),401
+    
+    #パスワードチェック
+    if not bcrypt.checkpw(
+        password.encode("utf-8"), user["password_hash"].encode("utf-8")):
+        return jsonify({"error": "invalid username or password"}), 401
+    # JWTトークン発行
+    token = jwt.encode({"user_id": user["id"]}, SECRET_KEY, algorithm="HS256")
+    return jsonify({"token": token}), 200
+
 
 
 

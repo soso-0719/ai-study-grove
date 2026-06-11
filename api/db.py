@@ -20,7 +20,8 @@ def init_db():
             memo TEXT NOT NULL,
             minutes INTEGER NOT NULL,
             difficulty INTEGER NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            user_id INTEGER
         )
         """)
     cursor.execute("""
@@ -36,6 +37,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL UNIQUE,
             password_hash TEXT NOT NULL,
+            xp INTEGER DEFAULT 0,
             created_at TEXT NOT NULL
         )
     """)

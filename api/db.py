@@ -2,7 +2,10 @@ import sqlite3
 import os
 
 # Render上では同じディレクトリに保存、ローカルは../data/
-DB_NAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.db")
+if os.environ.get("RENDER"):
+    DB_NAME = "/tmp/app.db"
+else:
+    DB_NAME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.db")
 
 def get_conn():
     conn = sqlite3.connect(DB_NAME)

@@ -38,6 +38,8 @@ def require_auth(f):
         token = auth_header.split(" ")[1]
 
         try:
+            #tokenにペイロードと署名が入っているから認証可能
+            
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             request.user_id = payload["user_id"]  # user_idをrequestに保存
         except jwt.InvalidTokenError:
@@ -120,8 +122,8 @@ def create_study_log():
         validata["memo"],
         validata["minutes"],
         validata["difficulty"],
-        created_at
-        request.use_id
+        created_at,
+        request.user_id
 )
     new_log = {
             "id": new_id,

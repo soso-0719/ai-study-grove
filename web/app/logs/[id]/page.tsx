@@ -51,7 +51,7 @@ export default function LogDetailPage({ params }: PageProps) {
             }
             const p = await params;
             const id = p.id;
-            const res = await fetch(`http://127.0.0.1:5000/study-logs/${id}`, {
+            const res = await fetch(`https://ai-study-grove.onrender.com/study-logs/${id}`, {
                 headers: authHeaders()
             });
             if (!res.ok) {
@@ -62,7 +62,7 @@ export default function LogDetailPage({ params }: PageProps) {
             const data = await res.json();
             setLog(data);
 
-            const feedbackRes = await fetch(`http://127.0.0.1:5000/ai-feedbacks/${id}`, {
+            const feedbackRes = await fetch(`https://ai-study-grove.onrender.com/ai-feedbacks/${id}`, {
                 headers: authHeaders()
             });
             if (feedbackRes.ok) {
@@ -76,7 +76,7 @@ export default function LogDetailPage({ params }: PageProps) {
 
     async function handleDelete() {
         if (!log) return;
-        const res = await fetch(`http://127.0.0.1:5000/study-logs/${log.id}`, {
+        const res = await fetch(`https://ai-study-grove.onrender.com/study-logs/${log.id}`, {
             method: "DELETE",
             headers: authHeaders()
         });
@@ -87,7 +87,7 @@ export default function LogDetailPage({ params }: PageProps) {
 
     async function handleEdit() {
         if (!log) return;
-        const res = await fetch(`http://127.0.0.1:5000/study-logs/${log.id}`, {
+        const res = await fetch(`https://ai-study-grove.onrender.com/study-logs/${log.id}`, {
             method: "PUT",
             headers: authHeaders(), // Content-TypeもauthHeaders()がまとめて返す
             body: JSON.stringify({

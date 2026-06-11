@@ -1,6 +1,7 @@
 import anthropic
 import bcrypt
 import jwt
+import functools
 import os
 from flask import Flask , jsonify, request
 from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id,create_user,get_user_by_username
@@ -18,6 +19,33 @@ claude_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 ##secret key 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 
+##fはデコレータをつけた変数を返す。
+def require_auth(f):
+    @functools.wraps(f)
+    def decorated(*args,**kwargs):
+#リクエスト例
+##POST /study-logs HTTP/1.1
+#Host: 127.0.0.1:5000
+#Content-Type: application/json
+#Authorization: Bearer eyJhbGci...トークン...
+#{"title": "Reactを学んだ", "memo": "..."}こんなかんじ
+
+        auth_header = request.headers.get("Authorization")
+        if not auth_header or not auth_header.startswith("Bearer "):
+            return jsonify({
+                "error":"token rewuired"
+            }),401
+        token = auth_header.split(" ")[1]
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            request.user_id = payload["user_id"]  # user_idをrequestに保存
+        except jwt.InvalidTokenError:
+            return jsonify({"error": "invalid token"}), 401
+        
+        return f(*args,**kwargs)
+    return decorated
+
 ##数字定義
 HOST = "127.0.0.1"
 PORT = 5000
@@ -25,6 +53,7 @@ DEBUG = True
 
 # log_idに対応するフィードバックを返すエンドポイント
 @app.route("/ai-feedbacks/<int:log_id>")
+@require_auth
 def get_feedback(log_id):
     feedback = get_feedback_by_log_id(log_id)
     if feedback is None:
@@ -33,13 +62,15 @@ def get_feedback(log_id):
 
 #データベースの今ある範囲は全部返す
 @app.route("/study-logs")
+@require_auth
 def get_study_logs():
-    logs = get_logs()
+    logs = get_logs(request.user_id)
     return jsonify({
         "logs":logs
     })
 
 @app.route("/study-logs/<int:log_id>")
+@require_auth
 def get_detail_by_id(log_id):
     detail_log = get_detail(log_id)
     if detail_log is None:
@@ -49,6 +80,7 @@ def get_detail_by_id(log_id):
     return jsonify(detail_log)
 ##DELETE
 @app.route("/study-logs/<int:log_id>", methods=["DELETE"])
+@require_auth
 def delete_study_log(log_id):
     deleted = delete_log(log_id)
     if not deleted:
@@ -56,6 +88,7 @@ def delete_study_log(log_id):
     return jsonify({"message": "deleted"}), 200
 
 @app.route("/study-logs/<int:log_id>", methods=["PUT"])
+@require_auth
 def update_study_log(log_id):
     data = request.get_json(silent=True)
     validata,error = validate_data(data)
@@ -71,6 +104,7 @@ def update_study_log(log_id):
     return jsonify({"message": "updated"}), 200
 
 @app.route("/study-logs",methods = ["POST"])
+@require_auth
 def create_study_log():
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     data = request.get_json(silent=True)##読み取りミスってもNoneにしてエラー防ぐ
@@ -87,6 +121,7 @@ def create_study_log():
         validata["minutes"],
         validata["difficulty"],
         created_at
+        request.use_id
 )
     new_log = {
             "id": new_id,
@@ -109,7 +144,8 @@ def create_study_log():
 
     return jsonify(new_log), 201
 ##新規登録
-@app.route("/reigister",methods = ["POST"])
+@app.route("/register",methods = ["POST"])
+
 def register():
     data = request.get_json(silent=True)
     if data is  None :
@@ -128,7 +164,7 @@ def register():
     current_user = get_user_by_username(username)
     if current_user :
         return jsonify({
-           " error":"username already used"
+           "error":"username already used"
         }),400
     ##hash化
     password_hash = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()) 
@@ -158,7 +194,7 @@ def login():
     user = get_user_by_username(username)
     if user is None : 
         return jsonify({
-            "error":"inva;id username or password"
+            "error":"invalid username or password"
         }),401
     
     #パスワードチェック

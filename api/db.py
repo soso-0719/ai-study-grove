@@ -41,14 +41,14 @@ def init_db():
     conn.commit()
     conn.close()
 
-def create_log(title, memo, minutes, difficulty, created_at):
+def create_log(title, memo, minutes, difficulty, created_at,user_id):
     conn = get_conn()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO study_logs (title, memo, minutes, difficulty, created_at)
-        VALUES (?, ?, ?, ?, ?)
-    """, (title, memo, minutes, difficulty, created_at))
+        INSERT INTO study_logs (title, memo, minutes, difficulty, created_at,user_id)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (title, memo, minutes, difficulty, created_at,user_id))
     conn.commit()
     new_id = cursor.lastrowid
     conn.close()
@@ -79,15 +79,16 @@ def create_user(username, password_hash, created_at):
 
 
 
-def get_logs():
+def get_logs(user_id):
     conn = get_conn()
     cursor = conn.cursor()
 
     cursor.execute("""
         SELECT id, title, memo, minutes, difficulty, created_at
         FROM study_logs
+        WHERE user_id = ?
         ORDER BY id DESC
-    """)
+    """, (user_id,))
 
     rows = cursor.fetchall()
     conn.close()

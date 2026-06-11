@@ -21,6 +21,15 @@ type PageProps = {
     params: Promise<{ id: string }>;
 };
 
+// localStorageのトークンを取り出してヘッダーオブジェクトにして返す
+function authHeaders() {
+    const token = localStorage.getItem("token");
+    return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    };
+}
+
 export default function LogDetailPage({ params }: PageProps) {
     const [log, setLog] = useState<StudyLog | null>(null);
     const [loading, setLoading] = useState(true);
@@ -35,9 +44,16 @@ export default function LogDetailPage({ params }: PageProps) {
 
     useEffect(function () {
         async function load() {
+            // トークンがなければログインページへ飛ばす
+            if (!localStorage.getItem("token")) {
+                router.push("/login");
+                return;
+            }
             const p = await params;
             const id = p.id;
-            const res = await fetch(`http://127.0.0.1:5000/study-logs/${id}`);
+            const res = await fetch(`http://127.0.0.1:5000/study-logs/${id}`, {
+                headers: authHeaders()
+            });
             if (!res.ok) {
                 setError("ログが見つかりません");
                 setLoading(false);
@@ -46,13 +62,13 @@ export default function LogDetailPage({ params }: PageProps) {
             const data = await res.json();
             setLog(data);
 
-            const feedbackRes = await fetch(`http://127.0.0.1:5000/ai-feedbacks/${id}`);
+            const feedbackRes = await fetch(`http://127.0.0.1:5000/ai-feedbacks/${id}`, {
+                headers: authHeaders()
+            });
             if (feedbackRes.ok) {
                 const feedbackData = await feedbackRes.json();
                 setFeedback(feedbackData);
             }
-
-
             setLoading(false);
         }
         load();
@@ -62,6 +78,7 @@ export default function LogDetailPage({ params }: PageProps) {
         if (!log) return;
         const res = await fetch(`http://127.0.0.1:5000/study-logs/${log.id}`, {
             method: "DELETE",
+            headers: authHeaders()
         });
         if (res.ok) {
             router.push("/");
@@ -72,7 +89,7 @@ export default function LogDetailPage({ params }: PageProps) {
         if (!log) return;
         const res = await fetch(`http://127.0.0.1:5000/study-logs/${log.id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
+            headers: authHeaders(), // Content-TypeもauthHeaders()がまとめて返す
             body: JSON.stringify({
                 title: editTitle,
                 memo: editMemo,
@@ -93,7 +110,6 @@ export default function LogDetailPage({ params }: PageProps) {
     if (isEditing) {
         return (
             <main>
-
                 <input value={editTitle} onChange={function (e) { setEditTitle(e.target.value); }} />
                 <textarea value={editMemo} onChange={function (e) { setEditMemo(e.target.value); }} />
                 <input value={editMinutes} onChange={function (e) { setEditMinutes(e.target.value); }} />
@@ -135,5 +151,4 @@ export default function LogDetailPage({ params }: PageProps) {
             <button onClick={handleDelete}>Delete</button>
         </main>
     );
-
 }

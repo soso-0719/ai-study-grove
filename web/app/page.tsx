@@ -2,6 +2,16 @@
 import { useState, useEffect } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+// localStorageのトークンを取り出してヘッダーオブジェクトにして返す
+function authHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${token}`
+  };
+}
 
 type StudyLog = {
   id: number;
@@ -24,6 +34,7 @@ export default function Home() {
   const [logs, setLogs] = useState<StudyLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const router = useRouter();
   const totalMinutes = logs.reduce((total, log) => {
     return total + log.minutes;
   }, 0);
@@ -32,7 +43,9 @@ export default function Home() {
   //データ持ってくる、画面更新1回目は全部のデータ持ってくる
   async function fetchLogs() {
     try {
-      const response = await fetch(`${API_BASE_URL}/study-logs`);
+      const response = await fetch(`${API_BASE_URL}/study-logs`, {
+        headers: authHeaders()
+      });
 
       if (!response.ok) {
         throw new Error("Failed to fetch study logs");
@@ -48,6 +61,11 @@ export default function Home() {
   }
 
   useEffect(() => {
+    // トークンがなければログインページへ飛ばす
+    if (!localStorage.getItem("token")) {
+      router.push("/login");
+      return;
+    }
     fetchLogs();
   }, []);
 
@@ -57,9 +75,7 @@ export default function Home() {
     setError("");
     const response = await fetch(`${API_BASE_URL}/study-logs`, {
       method: "POST",
-      headers: {
-        "content-Type": "application/json"
-      },
+      headers: authHeaders(),
       body: JSON.stringify({
         title: title,
         memo: memo,

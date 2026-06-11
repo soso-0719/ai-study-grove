@@ -59,55 +59,58 @@ export default function LoginPage() {
     }
 
     return (
-        <main>
-            <h1>{mode === "login" ? "ログイン" : "新規登録"}</h1>
-
-            {/* ユーザー名入力 */}
-            <div>
-                <label>ユーザー名</label>
-                <input
-                    value={username}
-                    onChange={function (e) { setUsername(e.target.value); }}
-                />
-            </div>
-
-            {/* パスワード入力 */}
-            <div>
-                <label>パスワード</label>
-                <input
-                    type="password"
-                    value={password}
-                    onChange={function (e) { setPassword(e.target.value); }}
-                />
-            </div>
-
-            {/* エラー表示 */}
-            {error && <p>{error}</p>}
-
-            {/* モードによってボタンを切り替え */}
-            {mode === "login" ? (
-                <div>
-                    <button onClick={handleLogin} disabled={loading}>
-                        {loading ? "ログイン中..." : "ログイン"}
-                    </button>
-                    <p>アカウントがない方は
-                        <button onClick={function () { setMode("register"); setError(""); }}>
-                            新規登録
-                        </button>
-                    </p>
+        <div className="auth-wrapper">
+            <div className="auth-card">
+                <div className="auth-logo">🌿 AI Study Grove</div>
+                <div className="auth-subtitle">
+                    {mode === "login" ? "ログインしてください" : "アカウントを作成"}
                 </div>
-            ) : (
-                <div>
-                    <button onClick={handleRegister} disabled={loading}>
-                        {loading ? "登録中..." : "登録する"}
-                    </button>
-                    <p>すでにアカウントがある方は
-                        <button onClick={function () { setMode("login"); setError(""); }}>
-                            ログイン
-                        </button>
-                    </p>
+
+                <div className="form-group">
+                    <label>ユーザー名</label>
+                    <input
+                        value={username}
+                        onChange={function (e) { setUsername(e.target.value); }}
+                    />
                 </div>
-            )}
-        </main>
+
+                <div className="form-group">
+                    <label>パスワード</label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={function (e) { setPassword(e.target.value); }}
+                    />
+                </div>
+
+                {error && <p className="error">{error}</p>}
+
+                {mode === "login" ? (
+                    <>
+                        <button className="btn-primary" onClick={handleLogin} disabled={loading}>
+                            {loading ? "ログイン中..." : "ログイン"}
+                        </button>
+                        <div className="auth-switch">
+                            アカウントがない方は
+                            <button onClick={function () { setMode("register"); setError(""); }}>
+                                新規登録
+                            </button>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <button className="btn-primary" onClick={handleRegister} disabled={loading}>
+                            {loading ? "登録中..." : "登録する"}
+                        </button>
+                        <div className="auth-switch">
+                            すでにアカウントがある方は
+                            <button onClick={function () { setMode("login"); setError(""); }}>
+                                ログイン
+                            </button>
+                        </div>
+                    </>
+                )}
+            </div>
+        </div>
     );
 }

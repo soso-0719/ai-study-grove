@@ -185,3 +185,25 @@ def get_user_by_username(username):
         "username": row["username"],
         "password_hash": row["password_hash"]
     }
+
+def add_xp(user_id, xp_amount):
+    conn = get_conn()
+    cursor = conn.cursor()
+    
+    cursor.execute("UPDATE users SET xp = xp + ? WHERE id = ?", (xp_amount, user_id))
+    conn.commit()
+    conn.close()
+
+def get_user(user_id):
+    conn = get_conn()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, username, xp FROM users WHERE id = ?", (user_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if row is None:
+        return None
+    return {
+        "id": row["id"],
+        "username": row["username"],
+        "xp": row["xp"]
+    }

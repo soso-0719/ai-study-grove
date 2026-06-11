@@ -67,44 +67,57 @@ export default function TimerPage() {
     const seconds = (timeLeft % 60).toString().padStart(2, "0");
 
     return (
-        <main>
-            <h1>ポモドーロタイマー</h1>
+        <>
+            <nav>
+                <span className="nav-logo">🌿 AI Study Grove</span>
+                <div className="nav-links">
+                    <a href="/">Home</a>
+                    <a href="/timer" className="active">Timer</a>
+                </div>
+            </nav>
 
-            {/* 時間設定（タイマーが止まっているときだけ変更できる） */}
-            <div>
-                <label>集中時間（分）</label>
-                <input
-                    type="number"
-                    value={focusInput}
-                    onChange={function (e) {
-                        setFocusInput(e.target.value);
-                        if (mode === "focus") setTimeLeft(Number(e.target.value) * 60);
-                    }}
-                    disabled={isRunning}
-                />
+            <div className="page-single">
+                <div className="card">
+                    <div className="card-title">Focus Timer</div>
+
+                    <div className="timer-display">
+                        <div className="timer-mode">{mode === "focus" ? "集中中" : "休憩中"}</div>
+                        <div className="timer-time">{minutes}:{seconds}</div>
+                        <div className="timer-btns">
+                            <button className="btn-start" onClick={handleStart} disabled={isRunning}>Start</button>
+                            <button onClick={handleStop} disabled={!isRunning}>Stop</button>
+                            <button onClick={handleReset}>Reset</button>
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                        <div className="form-group">
+                            <label>集中時間（分）</label>
+                            <input
+                                type="number"
+                                value={focusInput}
+                                onChange={function (e) {
+                                    setFocusInput(e.target.value);
+                                    if (mode === "focus") setTimeLeft(Number(e.target.value) * 60);
+                                }}
+                                disabled={isRunning}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>休憩時間（分）</label>
+                            <input
+                                type="number"
+                                value={breakInput}
+                                onChange={function (e) {
+                                    setBreakInput(e.target.value);
+                                    if (mode === "break") setTimeLeft(Number(e.target.value) * 60);
+                                }}
+                                disabled={isRunning}
+                            />
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div>
-                <label>休憩時間（分）</label>
-                <input
-                    type="number"
-                    value={breakInput}
-                    onChange={function (e) {
-                        setBreakInput(e.target.value);
-                        if (mode === "break") setTimeLeft(Number(e.target.value) * 60);
-                    }}
-                    disabled={isRunning}
-                />
-            </div>
-
-            <p>{mode === "focus" ? "集中" : "休憩中"}</p>
-            <p>{minutes}:{seconds}</p>
-            {/* タイマー表示 */}
-            <p>{minutes}:{seconds}</p>
-
-            {/* ボタン */}
-            <button onClick={handleStart} disabled={isRunning}>Start</button>
-            <button onClick={handleStop} disabled={!isRunning}>Stop</button>
-            <button onClick={handleReset}>Reset</button>
-        </main>
+        </>
     );
 }

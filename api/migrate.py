@@ -3,8 +3,8 @@ import sqlite3
 conn = sqlite3.connect("../data/app.db")
 cursor = conn.cursor()
 
-# study_logsテーブルにuser_idカラムを追加
-cursor.execute("ALTER TABLE study_logs ADD COLUMN user_id INTEGER")
+# usersテーブルにxpカラムを追加
+cursor.execute("ALTER TABLE users ADD COLUMN xp INTEGER DEFAULT 0")
 
 conn.commit()
 conn.close()

@@ -103,52 +103,73 @@ export default function LogDetailPage({ params }: PageProps) {
         }
     }
 
-    if (loading) return <main><p>Loading...</p></main>;
-    if (error) return <main><p>{error}</p><Link href="/">← Back</Link></main>;
+    if (loading) return <div className="page-single"><p>Loading...</p></div>;
+    if (error) return <div className="page-single"><p className="error">{error}</p><Link href="/" className="back-link">← Back</Link></div>;
     if (!log) return null;
 
     if (isEditing) {
         return (
-            <main>
-                <input value={editTitle} onChange={function (e) { setEditTitle(e.target.value); }} />
-                <textarea value={editMemo} onChange={function (e) { setEditMemo(e.target.value); }} />
-                <input value={editMinutes} onChange={function (e) { setEditMinutes(e.target.value); }} />
-                <select value={editDifficulty} onChange={function (e) { setEditDifficulty(e.target.value); }}>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-                <button onClick={handleEdit}>Save</button>
-                <button onClick={function () { setIsEditing(false); }}>Cancel</button>
-            </main>
+            <div className="page-single">
+                <Link href="/" className="back-link">← Back</Link>
+                <div className="card">
+                    <div className="card-title">Edit Log</div>
+                    <div className="form-group">
+                        <label>Title</label>
+                        <input value={editTitle} onChange={function (e) { setEditTitle(e.target.value); }} />
+                    </div>
+                    <div className="form-group">
+                        <label>Memo</label>
+                        <textarea value={editMemo} onChange={function (e) { setEditMemo(e.target.value); }} />
+                    </div>
+                    <div className="form-group">
+                        <label>Minutes</label>
+                        <input value={editMinutes} onChange={function (e) { setEditMinutes(e.target.value); }} />
+                    </div>
+                    <div className="form-group">
+                        <label>Difficulty</label>
+                        <select value={editDifficulty} onChange={function (e) { setEditDifficulty(e.target.value); }}>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                    <div className="detail-actions">
+                        <button className="btn-primary" onClick={handleEdit}>Save</button>
+                        <button onClick={function () { setIsEditing(false); }}>Cancel</button>
+                    </div>
+                </div>
+            </div>
         );
     }
 
     return (
-        <main>
-            <Link href="/">← Back</Link>
-            <h1>{log.title}</h1>
-            <p>Memo: {log.memo}</p>
-            <p>Minutes: {log.minutes}</p>
-            <p>Difficulty: {log.difficulty}</p>
-            <p>Created at: {log.created_at}</p>
-            {feedback && (
-                <div>
-                    <h2>AI Feedback</h2>
-                    <p>{feedback.feedback}</p>
-                    <p>{feedback.created_at}</p>
+        <div className="page-single">
+            <Link href="/" className="back-link">← Back</Link>
+            <div className="card">
+                <div className="detail-header">
+                    <h1>{log.title}</h1>
+                    <div className="detail-meta">{log.minutes}分 · 難易度 {log.difficulty} · {log.created_at}</div>
                 </div>
-            )}
-            <button onClick={function () {
-                setEditTitle(log.title);
-                setEditMemo(log.memo);
-                setEditMinutes(String(log.minutes));
-                setEditDifficulty(String(log.difficulty));
-                setIsEditing(true);
-            }}>Edit</button>
-            <button onClick={handleDelete}>Delete</button>
-        </main>
+                <p>{log.memo}</p>
+                {feedback && (
+                    <div style={{ marginTop: "20px" }}>
+                        <div className="card-title">AI Feedback</div>
+                        <div className="ai-feedback">{feedback.feedback}</div>
+                    </div>
+                )}
+                <div className="detail-actions">
+                    <button onClick={function () {
+                        setEditTitle(log.title);
+                        setEditMemo(log.memo);
+                        setEditMinutes(String(log.minutes));
+                        setEditDifficulty(String(log.difficulty));
+                        setIsEditing(true);
+                    }}>Edit</button>
+                    <button className="btn-danger" onClick={handleDelete}>Delete</button>
+                </div>
+            </div>
+        </div>
     );
 }

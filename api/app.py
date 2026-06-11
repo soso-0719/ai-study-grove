@@ -4,7 +4,7 @@ import jwt
 import functools
 import os
 from flask import Flask , jsonify, request
-from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id,create_user,get_user_by_username
+from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id,create_user,get_user_by_username,add_xp,get_user
 from datetime import datetime
 from flask_cors import CORS
 
@@ -39,7 +39,7 @@ def require_auth(f):
 
         try:
             #tokenにペイロードと署名が入っているから認証可能
-            
+
             payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
             request.user_id = payload["user_id"]  # user_idをrequestに保存
         except jwt.InvalidTokenError:
@@ -54,6 +54,22 @@ PORT = 5000
 DEBUG = True
 
 # log_idに対応するフィードバックを返すエンドポイント
+@app.route("/me")
+@require_auth
+def get_me():
+    user = get_user(request.user_id)
+    if user is None:
+        return jsonify({"error": "user not found"}), 404
+    xp = user["xp"]
+    level = calc_level(xp)
+    next_xp = calc_next_xp(level)
+    return jsonify({
+        "username": user["username"],
+        "xp": xp,
+        "level": level,
+        "next_xp": next_xp
+    }), 200
+
 @app.route("/ai-feedbacks/<int:log_id>")
 @require_auth
 def get_feedback(log_id):
@@ -143,7 +159,8 @@ def create_study_log():
     )
     feedback_text = message.content[0].text
     create_feedback(new_id, feedback_text, created_at)
-
+    xp_earned = validata["minutes"] * validata["difficulty"]
+    add_xp(request.user_id, xp_earned)
     return jsonify(new_log), 201
 ##新規登録
 @app.route("/register",methods = ["POST"])
@@ -256,6 +273,22 @@ def validate_data(data):
         "minutes": minutes,
         "difficulty": difficulty
     }, None
+def calc_level(xp):
+    thresholds = [0, 200, 500, 1000, 2000, 4000, 7000, 11000]
+    level = 1
+    for t in thresholds:
+        if xp >= t:
+            level += 1
+    return level - 1
+
+def calc_next_xp(level):
+    thresholds = [0, 200, 500, 1000, 2000, 4000, 7000, 11000]
+    if level >= len(thresholds):
+        return thresholds[-1]
+    return thresholds[level]
+
+
+
 if __name__ == "__main__":
     init_db()
     app.run(host=HOST,port=PORT,debug=DEBUG)

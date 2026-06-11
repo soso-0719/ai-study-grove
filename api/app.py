@@ -1,7 +1,9 @@
 import anthropic
+import bcrypt
+import jwt
 import os
 from flask import Flask , jsonify, request
-from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id
+from db import init_db , create_log , get_logs, get_detail_by_id as get_detail, delete_log,update_log,create_feedback, get_feedback_by_log_id,create_user,get_user_by_username
 from datetime import datetime
 from flask_cors import CORS
 
@@ -13,7 +15,8 @@ CORS(app, origins=[
 ])
 #apikey
 claude_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
-
+##secret key 
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 ##数字定義
 HOST = "127.0.0.1"
@@ -76,6 +79,7 @@ def create_study_log():
         return jsonify({
         "error":error
     }),400
+
 ##INSERT
     new_id = create_log(
         validata["title"],
@@ -105,6 +109,38 @@ def create_study_log():
 
     return jsonify(new_log), 201
 
+@app.route("reigister",method = ["POST"])
+def register():
+    data = request.get_json(silent=Ture)
+    if data is  None :
+        return jsonify({
+            "error": JSON body is required
+        }),400
+    
+    username = data.get("username")
+    password = data.get("password")
+
+    if not username or not password:
+        return jsonify({
+            "error": "username and password are required"
+        }), 400
+    ##user確認
+    current_user = get_user_by_username(username)
+    if current_user :
+        return jsonify({
+            error:"username already used"
+        }),400
+    ##hash化
+    password_hash = bcrypt.hashpw(password.encode("utf-8"), 
+        bcrypt.gensalt())
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    
+                        
+
+
+
+##関数
 def validate_data(data):
     if data is None:
         return None, "Json body is required from HTTP request"

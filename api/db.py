@@ -1,6 +1,8 @@
 import sqlite3
+import os
 
-DB_NAME = "../data/app.db"
+# Render上では同じディレクトリに保存、ローカルは../data/
+DB_NAME = os.path.join(os.path.dirname(__file__), "app.db")
 
 def get_conn():
     conn = sqlite3.connect(DB_NAME)

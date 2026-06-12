@@ -1,24 +1,69 @@
-# AI Study Grove(開発中です)
+# 🌿 AI Study Grove
 
-AI Study Grove is a study support application that combines focus timer, study logs, and AI-based review feedback.
+## 作成理由
 
-## Concept
+弟が受験勉強をしているとき、「何を勉強したか忘れる」「集中が続かない」と言っていたことがきっかけです。  
+学習ログを記録して振り返れる機能と、ポモドーロタイマーを組み合わせたアプリを作りました。
 
-集中して学習し、記録し、AIで振り返るための学習支援アプリです。
+また、以前はSQLiteを使った簡単なログイン機能しか実装したことがなかったため、今回はJWTトークンを使った認証に挑戦しました。
 
-## Planned Features
+---
 
-- Focus timer
-- Study logs
-- AI feedback
-- Review questions
-- Dashboard
-- Learning history
+## 機能
 
-## Structure
+- **ユーザー認証**：JWT認証によるログイン・新規登録
+- **学習ログ記録**：タイトル・メモ・学習時間・難易度を記録
+- **AIフィードバック**：Anthropic APIを使った学習内容へのフィードバック
+- **XP/レベルシステム**：学習時間と難易度からXPを計算、レベルアップでモチベーション維持
+- **ポモドーロタイマー**：集中時間・休憩時間を設定できるタイマー
+- **レスポンシブデザイン**：スマホ・PCどちらでも使える
 
-```text
-api/   Backend API
-web/   Frontend app
-docs/  Design notes
-data/  Local database
+---
+
+## 使用技術
+
+| 領域 | 技術 |
+|------|------|
+| フロントエンド | Next.js / TypeScript |
+| バックエンド | Flask (Python) |
+| データベース | SQLite |
+| 認証 | JWT (PyJWT) |
+| AI | Anthropic API (Claude) |
+| フロントデプロイ | Vercel |
+| バックエンドデプロイ | Render |
+
+---
+
+## デモ
+
+- フロントエンド：https://ai-study-grove.vercel.app
+- バックエンドAPI：https://ai-study-grove.onrender.com
+
+> **注意**：Renderの無料プランを使用しているため、しばらくアクセスがないとサーバーがスリープします。  
+> 初回アクセス時は起動まで**最大50秒**ほどかかる場合があります。
+
+> **注意**：データベースにSQLiteを使用しているため、Renderの再デプロイ時にデータがリセットされます。
+
+---
+
+## 開発で苦労したこと
+
+- **Renderへのデプロイ**：SQLiteのDBファイルパス、ポートのバインド設定、CORSの設定など、ローカルと本番環境の差異への対応
+- **JWT認証の実装**：トークンの生成・検証・デコレータによる認証保護を一から実装
+- **フロントとバックの連携**：Next.jsからFlask APIへのリクエスト、認証ヘッダーの管理
+
+---
+
+## 工夫したポイント
+
+- XPは「学習時間 × 難易度」で計算し、長時間・難しい内容ほど多く獲得できる設計
+- ゲーミフィケーションでログを続けるモチベーションを作った
+- CSSはAIを活用して生成・調整し、統一感のあるデザインに仕上げた
+
+---
+
+## 今後追加したい機能
+
+- PostgreSQLへの移行（データ永続化）
+- 学習時間のグラフ表示
+- カレンダービュー
